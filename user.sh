@@ -10,8 +10,9 @@ if [ $(id -u) -eq 0 ]; then
 		exit 1
 	else
 		pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
-		useradd -m -p "$pass" "$username"
+		sudo adduser -p "$pass" -m "$username" 
 		[ $? -eq 0 ] && echo "User has been added to system!" || echo "Failed to add a user!"
+		exit
 	fi
 else
 	echo "Only root may add a user to the system."
@@ -113,14 +114,14 @@ gpasswddel(){
 			read -s -p "Enter passwd : " password
 			pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
 			useradd -m -p "$pass" "$username"
-			[ $? -eq 0 ] && echo "User has been added to system!" || echo "Failed to add a user!"
+			[ $? -eq 0 ] && echo "User has been removed from the system!" || echo "Failed to del a user!"
 		fi
 	done
 		read -p "Enter groupname : " groupname
 		egrep "^$groupname" /etc/group >/dev/null
 		if [ $? -eq 0 ]; then
 			gpasswd -d "$username" "$groupname" 
-			echo "Add user $username to group $group suscesfully"
+			echo "User $username has been removed from group $group suscesfully"
 			exit
 
 		else
@@ -134,9 +135,10 @@ gpasswddel(){
 		exit 2
 	fi
 }
-#adduser
+adduser 
+
 #addgroups
 #deluser
 #delgroup
-gpasswd(a)
+#gpasswd
 #menu
