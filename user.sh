@@ -66,11 +66,77 @@ delgroup(){
 		exit
 	fi
 }
+gpasswdadd(){
+	if [ $(id -u) -eq 0 ]; then
+	read -p "Enter username : " username
+	while :
+	do
+		egrep "^$username" /etc/passwd >/dev/null
+		if [ $? -eq 0 ]; then
+			break
+		else
+			echo "$username"
+			read -s -p "Enter passwd : " password
+			pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
+			useradd -m -p "$pass" "$username"
+			[ $? -eq 0 ] && echo "User has been added to system!" || echo "Failed to add a user!"
+		fi
+	done
+		read -p "Enter groupname : " groupname
+		egrep "^$groupname" /etc/group >/dev/null
+		if [ $? -eq 0 ]; then
+			gpasswd -a "$username" "$groupname" 
+			echo "Add user $username to group $group suscesfully"
+			exit
 
-adduser
-addgroups
-deluser
-delgroup
-#usermod
-#gpasswd
+		else
+			echo "User $username deleted"
+			userdel "$username"
+			exit 0
+		fi
+
+	else
+		echo "Only root may add a user to the system."
+		exit 2
+	fi
+}
+gpasswddel(){
+	if [ $(id -u) -eq 0 ]; then
+	read -p "Enter username : " username
+	while :
+	do
+		egrep "^$username" /etc/passwd >/dev/null
+		if [ $? -eq 0 ]; then
+			break
+		else
+			echo "$username"
+			read -s -p "Enter passwd : " password
+			pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
+			useradd -m -p "$pass" "$username"
+			[ $? -eq 0 ] && echo "User has been added to system!" || echo "Failed to add a user!"
+		fi
+	done
+		read -p "Enter groupname : " groupname
+		egrep "^$groupname" /etc/group >/dev/null
+		if [ $? -eq 0 ]; then
+			gpasswd -d "$username" "$groupname" 
+			echo "Add user $username to group $group suscesfully"
+			exit
+
+		else
+			echo "User $username deleted"
+			userdel "$username"
+			exit 0
+		fi
+
+	else
+		echo "Only root may add a user to the system."
+		exit 2
+	fi
+}
+#adduser
+#addgroups
+#deluser
+#delgroup
+gpasswd(a)
 #menu
