@@ -79,7 +79,7 @@ gpasswdadd(){
 			echo "$username"
 			read -s -p "Enter passwd : " password
 			pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
-			useradd -m -p "$pass" "$username"
+			sudo adduser -p "$pass" -m "$username"
 			[ $? -eq 0 ] && echo "User has been added to system!" || echo "Failed to add a user!"
 		fi
 	done
@@ -113,7 +113,7 @@ gpasswddel(){
 			echo "$username"
 			read -s -p "Enter passwd : " password
 			pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
-			useradd -m -p "$pass" "$username"
+			sudo adduser -p "$pass" -m "$username"
 			[ $? -eq 0 ] && echo "User has been removed from the system!" || echo "Failed to del a user!"
 		fi
 	done
@@ -135,8 +135,48 @@ gpasswddel(){
 		exit 2
 	fi
 }
-adduser 
-
+menu(){
+	clear
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~"	
+	echo "          M E N U        "
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
+	echo "1. Add user              "
+	echo "2. Remove user           "
+	echo "3. Add group             "
+	echo "4. Remove group          "
+	echo "5. Add user to group     "
+	echo "6. Remove user from group"
+	echo "7. Exit"
+}
+readoptions(){
+	local choice
+	read -p "Enter choice [ 1 - 7] " choice
+	case $choice in
+		1) adduser
+		;;
+		2) deluser 
+		;;
+		3) addgroups
+		;;
+		4) delgroup 
+		;;
+		5) gpasswdadd 
+		;;
+		6) gpasswddel 
+		;;
+		7) echo "Thanks"
+		exit 0
+		;;
+		*) echo -e "${RED}Error...${STD}" && sleep 2
+	esac
+}
+while :
+do
+ 
+	menu
+	readoptions
+done
+#adduser 
 #addgroups
 #deluser
 #delgroup
