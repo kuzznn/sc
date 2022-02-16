@@ -9,7 +9,19 @@ adduser() {
 	else
 		pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
 		sudo adduser -p "$pass" -m "$username"
-		[ $? -eq 0 ] && echo "User has been added to system!" || echo "Failed to add a user!"
+		local choice
+		read -p "Do you want to disable login:  y/N  " choice
+		case $choice in
+		y)
+			usermod "$username" -s /sbin/nologin
+			[ $? -eq 0 ] && echo "User has been added to system and disable login" || echo "Failed to add a user!"
+			;;
+		n)
+			[ $? -eq 0 ] && echo "User has been added to system!" || echo "Failed to add a user!"
+			;;
+		*) echo -e "${RED}Error...${STD}" && sleep 2 ;;
+		esac
+
 	fi
 }
 deluser() {
@@ -106,6 +118,22 @@ listuser() {
 	fi
 	rm -f usernames
 }
+addusers() {
+	read -p "Groupname to add: " groupnames
+	while read line; do
+		IFS= ':'
+		read -ra info <<<"$line"
+		egrep "^${info[0]}" /etc/passwd >/dev/null
+		if [ $? -eq 0 ]; then
+			echo "${info[0]} exists!"
+		else
+			pass=$(perl -e 'print crypt($ARGV[0], "password")' ${info[1]})
+			sudo adduser -p "$pass" -m "${info[0]}" -G "$groupnames"
+			[ $? -eq 0 ] && echo "User has been added to system!" || echo "Failed to add a user!"
+		fi
+	done <./user
+}
+
 menu() {
 	#clear
 	echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -118,6 +146,7 @@ menu() {
 	echo "5. Add user to group     "
 	echo "6. Remove user from group"
 	echo "7. List user"
+	echo "8. Add users"
 	echo "0. Exit"
 }
 readoptions() {
@@ -144,6 +173,9 @@ readoptions() {
 		;;
 	7)
 		listuser
+		;;
+	8)
+		addusers
 		;;
 	0)
 		echo "Thanks"
