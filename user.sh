@@ -1,7 +1,6 @@
 #!/bin/bash
 
-adduser(){
-if [ $(id -u) -eq 0 ]; then
+adduser() {
 	read -p "Enter username : " username
 	read -s -p "Enter password : " password
 	egrep "^$username" /etc/passwd >/dev/null
@@ -9,16 +8,11 @@ if [ $(id -u) -eq 0 ]; then
 		echo "$username exists!"
 	else
 		pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
-		sudo adduser -p "$pass" -m "$username" 
+		sudo adduser -p "$pass" -m "$username"
 		[ $? -eq 0 ] && echo "User has been added to system!" || echo "Failed to add a user!"
 	fi
-else
-	echo "Only root may add a user to the system."
-	exit 2
-fi
 }
-deluser(){
-	if [ $(id -u) -eq 0 ]; then
+deluser() {
 	read -p "Enter username : " username
 	getent passwd $username
 	if [ $? -eq 0 ]; then
@@ -27,13 +21,8 @@ deluser(){
 	else
 		echo "$username not exists!"
 	fi
-	else
-		echo "Only root may add a user to the system."
-		exit 2
-	fi
 }
-addgroups(){
-	if [ $(id -u) -eq 0 ]; then
+addgroups() {
 	read -p "Enter groupname : " groupname
 	egrep "^$groupname" /etc/group >/dev/null
 	if [ $? -eq 0 ]; then
@@ -42,13 +31,8 @@ addgroups(){
 		groupadd "$groupname"
 		[ $? -eq 0 ] && echo "User has been added to system!" || echo "Failed to add a user!"
 	fi
-else
-	echo "Only root may add a user to the system."
-	exit
-fi
 }
-delgroup(){
-	if [ $(id -u) -eq 0 ]; then
+delgroup() {
 	read -p "Enter groupname : " groupname
 	egrep "^$groupname" /etc/group >/dev/null
 	if [ $? -eq 0 ]; then
@@ -57,16 +41,10 @@ delgroup(){
 	else
 		echo "$groupname not exists!"
 	fi
-	else
-		echo "Only root may add a user to the system."
-		exit
-	fi
 }
-gpasswdadd(){
-	if [ $(id -u) -eq 0 ]; then
+gpasswdadd() {
 	read -p "Enter username : " username
-	while :
-	do
+	while :; do
 		egrep "^$username" /etc/passwd >/dev/null
 		if [ $? -eq 0 ]; then
 			break
@@ -78,28 +56,21 @@ gpasswdadd(){
 			[ $? -eq 0 ] && echo "User has been added to system!" || echo "Failed to add a user!"
 		fi
 	done
-		read -p "Enter groupname : " groupname
-		egrep "^$groupname" /etc/group >/dev/null
-		if [ $? -eq 0 ]; then
-			gpasswd -a "$username" "$groupname" 
-			echo "Add user $username to group $group suscesfully"
-
-		else
-			echo "User $username deleted"
-			userdel "$username"
-		
-		fi
+	read -p "Enter groupname : " groupname
+	egrep "^$groupname" /etc/group >/dev/null
+	if [ $? -eq 0 ]; then
+		gpasswd -a "$username" "$groupname"
+		echo "Add user $username to group $group suscesfully"
 
 	else
-		echo "Only root may add a user to the system."
-		exit 2
+		echo "User $username deleted"
+		userdel -r "$username"
+
 	fi
 }
-gpasswddel(){
-	if [ $(id -u) -eq 0 ]; then
+gpasswddel() {
 	read -p "Enter username : " username
-	while :
-	do
+	while :; do
 		egrep "^$username" /etc/passwd >/dev/null
 		if [ $? -eq 0 ]; then
 			break
@@ -111,26 +82,33 @@ gpasswddel(){
 			[ $? -eq 0 ] && echo "User has been removed from the system!" || echo "Failed to del a user!"
 		fi
 	done
-		read -p "Enter groupname : " groupname
-		egrep "^$groupname" /etc/group >/dev/null
-		if [ $? -eq 0 ]; then
-			gpasswd -d "$username" "$groupname" 
-			echo "User $username has been removed from group $group suscesfully"
-			
-		else
-			echo "User $username deleted"
-			userdel "$username"
-			
-		fi
+	read -p "Enter groupname : " groupname
+	egrep "^$groupname" /etc/group >/dev/null
+	if [ $? -eq 0 ]; then
+		gpasswd -d "$username" "$groupname"
+		echo "User $username has been removed from group $group suscesfully"
+
+	else
+		echo "User $username deleted"
+		userdel -r "$username"
+
+	fi
+
+}
+listuser() {
+	if [ $(id -u) -eq 0 ]; then
+		ls /home >usernames
+		cat usernames
 
 	else
 		echo "Only root may add a user to the system."
 		exit 2
 	fi
+	rm -f usernames
 }
-menu(){
-	clear
-	echo "~~~~~~~~~~~~~~~~~~~~~~~~~"	
+menu() {
+	#clear
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
 	echo "          M E N U        "
 	echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
 	echo "1. Add user              "
@@ -139,34 +117,48 @@ menu(){
 	echo "4. Remove group          "
 	echo "5. Add user to group     "
 	echo "6. Remove user from group"
-	echo "7. Exit"
+	echo "7. List user"
+	echo "0. Exit"
 }
-readoptions(){
+readoptions() {
 	local choice
 	read -p "Enter choice [ 1 - 7] " choice
 	case $choice in
-		1) adduser
+	1)
+		adduser
 		;;
-		2) deluser 
+	2)
+		deluser
 		;;
-		3) addgroups
+	3)
+		addgroups
 		;;
-		4) delgroup 
+	4)
+		delgroup
 		;;
-		5) gpasswdadd 
+	5)
+		gpasswdadd
 		;;
-		6) gpasswddel 
+	6)
+		gpasswddel
 		;;
-		7) echo "Thanks"
+	7)
+		listuser
+		;;
+	0)
+		echo "Thanks"
 		exit 0
 		;;
-		*) echo -e "${RED}Error...${STD}" && sleep 2
+	*) echo -e "${RED}Error...${STD}" && sleep 2 ;;
 	esac
 }
-while :
-do
- 
-	menu
-	readoptions
-	sleep 1.5
-done
+if [ $(id -u) -eq 0 ]; then
+	while :; do
+		menu
+		readoptions
+		#sleep 1.5
+	done
+else
+	echo "Only root may add a user to the system."
+	exit 2
+fi
