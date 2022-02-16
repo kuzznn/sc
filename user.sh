@@ -7,12 +7,10 @@ if [ $(id -u) -eq 0 ]; then
 	egrep "^$username" /etc/passwd >/dev/null
 	if [ $? -eq 0 ]; then
 		echo "$username exists!"
-		exit 1
 	else
 		pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
 		sudo adduser -p "$pass" -m "$username" 
 		[ $? -eq 0 ] && echo "User has been added to system!" || echo "Failed to add a user!"
-		exit
 	fi
 else
 	echo "Only root may add a user to the system."
@@ -28,7 +26,6 @@ deluser(){
 		echo "User "$username" deleted"
 	else
 		echo "$username not exists!"
-		exit 1
 	fi
 	else
 		echo "Only root may add a user to the system."
@@ -41,7 +38,6 @@ addgroups(){
 	egrep "^$groupname" /etc/group >/dev/null
 	if [ $? -eq 0 ]; then
 		echo "$groupname exists!"
-		exit
 	else
 		groupadd "$groupname"
 		[ $? -eq 0 ] && echo "User has been added to system!" || echo "Failed to add a user!"
@@ -60,7 +56,6 @@ delgroup(){
 		echo "Group "$groupname" deleted"
 	else
 		echo "$groupname not exists!"
-		exit 
 	fi
 	else
 		echo "Only root may add a user to the system."
@@ -88,12 +83,11 @@ gpasswdadd(){
 		if [ $? -eq 0 ]; then
 			gpasswd -a "$username" "$groupname" 
 			echo "Add user $username to group $group suscesfully"
-			exit
 
 		else
 			echo "User $username deleted"
 			userdel "$username"
-			exit 0
+		
 		fi
 
 	else
@@ -122,12 +116,11 @@ gpasswddel(){
 		if [ $? -eq 0 ]; then
 			gpasswd -d "$username" "$groupname" 
 			echo "User $username has been removed from group $group suscesfully"
-			exit
-
+			
 		else
 			echo "User $username deleted"
 			userdel "$username"
-			exit 0
+			
 		fi
 
 	else
@@ -175,10 +168,5 @@ do
  
 	menu
 	readoptions
+	sleep 1.5
 done
-#adduser 
-#addgroups
-#deluser
-#delgroup
-#gpasswd
-#menu
